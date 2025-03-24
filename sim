@@ -1,34 +1,100 @@
-model <- function(beta0, beta1, beta2, beta3, beta_s, alpha1, alpha2, g, b) {
-  # Mean of b
-  b_mean <- mean(b)
-  
-  # Summation terms
-  sum_b <- sum(b)
-  sum_1_minus_b_mean <- sum(1 - b_mean)
-  
-  # Main equation
-  P_b_given_c <- (
-    beta0 +
-      beta1 * g +
-      beta2 * (alpha1 * sum_b - alpha2 * sum_1_minus_b_mean) +
-      beta3 * (g * (alpha1 * sum_b - alpha2 * sum_1_minus_b_mean)) +
-      beta_s
-  )
-  
-  return(P_b_given_c)
+# Load necessary library
+library(ggplot2)
+
+# Define the parameters
+beta_0 <- 0.5  # Example value for intercept
+beta_1 <- 0.3  # Example value for goal-directed influence weight
+beta_2 <- 0.4  # Example value for habit influence weight
+beta_3 <- 0.2  # Example value for interaction weight
+beta_4 <- 0.1  # Example value for stochastic influence weight
+
+# Define the range of values for each influence
+g_values <- seq(0, 7, length.out = 100)
+h_values <- seq(0, 7, length.out = 100)
+s_values <- seq(0, 7, length.out = 100)
+
+# Calculate the probabilities for each influence
+P_g <- 1 / (1 + exp(-(beta_0 + beta_1 * g_values + beta_2 * 1 + beta_3 * (g_values * 1) + beta_4 * 0.05)))
+P_h <- 1 / (1 + exp(-(beta_0 + beta_1 * 1 + beta_2 * h_values + beta_3 * (1 * h_values) + beta_4 * 0.05)))
+P_s <- 1 / (1 + exp(-(beta_0 + beta_1 * 1 + beta_2 * 1 + beta_3 * (1 * 1) + beta_4 * s_values)))
+
+# Create data frames for plotting
+data_g <- data.frame(Value = g_values, Probability = P_g, Influence = "Goal-directed Influence (g)")
+data_h <- data.frame(Value = h_values, Probability = P_h, Influence = "Habit Influence (h)")
+data_s <- data.frame(Value = s_values, Probability = P_s, Influence = "Stochastic Influence (s)")
+
+# Combine data frames
+data_combined <- rbind(data_g, data_h, data_s)
+
+# Plot all influences on one plot
+ggplot(data_combined, aes(x = Value, y = Probability, color = Influence)) +
+  geom_line() +
+  labs(title = "Influence of Different Parameters on Probability",
+       x = "Value",
+       y = "Probability") +
+  theme_minimal() +
+  scale_color_manual(values = c("blue", "green", "red"))
+
+
+
+
+
+# Load necessary library
+library(ggplot2)
+
+# Define the parameters
+alpha_1 <- 0.5  # Example value for weight of target behavior influence
+alpha_2 <- 0.3  # Example value for weight of alternative behavior influence
+
+# Define the range of values for target behaviors engaged in given the target context
+target_behavior_values <- seq(0, 1, length.out = 100)
+
+# Calculate habit strength using alternative behaviors as 1 minus the target behaviors
+habit_strength <- alpha_1 * target_behavior_values - alpha_2 * (1 - target_behavior_values)
+
+# Scale habit strength to be between 1 and 7
+habit_strength_scaled <- 1 + (habit_strength - min(habit_strength)) * (6 / (max(habit_strength) - min(habit_strength)))
+
+# Create a data frame for plotting
+data <- data.frame(Target_Behavior = target_behavior_values, Habit_Strength = habit_strength_scaled)
+
+# Plot the habit strength
+ggplot(data, aes(x = Target_Behavior, y = Habit_Strength)) +
+  geom_line(color = "blue") +
+  labs(title = "Habit Strength with Behaviors Engaged in Given the Target Context",
+       x = "Target Behavior",
+       y = "Habit Strength") +
+  theme_minimal()
+
+
+
+
+# Load necessary library
+library(ggplot2)
+
+# Define the parameters
+alpha_1_values <- c(0.3, 0.5, 0.7)  # Example values for weight of target behavior influence
+alpha_2 <- 0.3  # Example value for weight of alternative behavior influence
+
+# Define the range of values for target behaviors engaged in given the target context
+target_behavior_values <- seq(0, 1, length.out = 100)
+
+# Create an empty data frame for plotting
+data <- data.frame()
+
+# Calculate habit strength for each alpha_1 value and combine into one data frame
+for (alpha_1 in alpha_1_values) {
+  habit_strength <- alpha_1 * target_behavior_values - alpha_2 * (1 - target_behavior_values)
+  temp_data <- data.frame(Target_Behavior = target_behavior_values, Habit_Strength = habit_strength, Alpha = as.factor(alpha_1))
+  data <- rbind(data, temp_data)
 }
 
-# Example inputs
-beta0 <- 0.5
-beta1 <- 0.3
-beta2 <- 0.2
-beta3 <- 0.1
-beta_s <- 0.4
-alpha1 <- 0.6
-alpha2 <- 0.7
-g <- 1.2
-b <- c(0.5, 0.7, 0.6)
-
-# Run model
-result <- model(beta0, beta1, beta2, beta3, beta_s, alpha1, alpha2, g, b)
-print(result)
+# Plot the habit strength
+ggplot(data, aes(x = Target_Behavior, y = Habit_Strength, color = Alpha)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Habit Strength with Behaviors Engaged in Given the Target Context",
+       x = "Target Behavior",
+       y = "Habit Strength",
+       color = "Alpha_1") +
+  theme_minimal() +
+  scale_color_manual(values = c("red", "green", "blue"))
